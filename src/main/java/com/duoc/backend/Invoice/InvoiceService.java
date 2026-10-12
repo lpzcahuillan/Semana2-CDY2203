@@ -15,14 +15,17 @@ import java.util.stream.StreamSupport;
 @Service
 public class InvoiceService {
 
-    @Autowired
-    private InvoiceRepository invoiceRepository;
+    private final InvoiceRepository invoiceRepository;
+    private final MedicationRepository medicationRepository;
+    private final CareRepository careRepository;
 
-    @Autowired
-    private MedicationRepository medicationRepository;
-
-    @Autowired
-    private CareRepository careRepository;
+    public InvoiceService(InvoiceRepository invoiceRepository,
+                          MedicationRepository medicationRepository,
+                          CareRepository careRepository) {
+        this.invoiceRepository = invoiceRepository;
+        this.medicationRepository = medicationRepository;
+        this.careRepository = careRepository;
+    }
 
     public Iterable<Invoice> getAllInvoices() {
         return invoiceRepository.findAll();

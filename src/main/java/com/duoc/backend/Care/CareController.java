@@ -1,6 +1,5 @@
 package com.duoc.backend.care;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -9,26 +8,29 @@ import java.util.List;
 @RequestMapping("/care")
 public class CareController {
 
-    @Autowired
-    private CareRepository careRepository;
+    private final CareService careService;
+
+    public CareController(CareService careService) {
+        this.careService = careService;
+    }
 
     @GetMapping
     public List<Care> getAllCares() {
-        return (List<Care>) careRepository.findAll();
+        return careService.getAllCares();
     }
 
     @GetMapping("/{id}")
     public Care getCareById(@PathVariable Long id) {
-        return careRepository.findById(id).orElse(null);
+        return careService.getCareById(id);
     }
 
     @PostMapping
-    public Care saveCare(@RequestBody Care service) {
-        return careRepository.save(service);
+    public Care saveCare(@RequestBody CareDTO careDTO) {
+        return careService.saveCare(careDTO.toEntity());
     }
 
     @DeleteMapping("/{id}")
     public void deleteCare(@PathVariable Long id) {
-        careRepository.deleteById(id);
+        careService.deleteCare(id);
     }
 }

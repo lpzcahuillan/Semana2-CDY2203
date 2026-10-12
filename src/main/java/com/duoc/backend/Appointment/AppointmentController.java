@@ -1,6 +1,5 @@
 package com.duoc.backend.appointment;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -9,8 +8,11 @@ import java.util.List;
 @RequestMapping("/appointment")
 public class AppointmentController {
 
-    @Autowired
-    private AppointmentService appointmentService;
+    private final AppointmentService appointmentService;
+
+    public AppointmentController(AppointmentService appointmentService) {
+        this.appointmentService = appointmentService;
+    }
 
     @GetMapping
     public List<Appointment> getAllAppointments() {
@@ -23,8 +25,8 @@ public class AppointmentController {
     }
 
     @PostMapping
-    public Appointment saveAppointment(@RequestBody Appointment appointment) {
-        return appointmentService.saveAppointment(appointment);
+    public Appointment saveAppointment(@RequestBody AppointmentDTO appointmentDTO) {
+        return appointmentService.saveAppointment(appointmentDTO.toEntity());
     }
 
     @DeleteMapping("/{id}")

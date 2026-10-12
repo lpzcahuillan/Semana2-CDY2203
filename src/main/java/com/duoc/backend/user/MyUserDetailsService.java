@@ -1,6 +1,5 @@
 package com.duoc.backend.user;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,23 +11,23 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
 @Configuration
 @Service
 public class MyUserDetailsService implements UserDetailsService {
 
-        Logger logger
-        = LoggerFactory.getLogger(MyUserDetailsService.class);
+    private static final Logger logger = LoggerFactory.getLogger(MyUserDetailsService.class);
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
+    public MyUserDetailsService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public UserDetails loadUserByUsername(String username) {
         User user = userRepository.findByUsername(username);
         if (user == null) {
+            logger.warn("User not found: {}", username);
             throw new UsernameNotFoundException(username);
         }
         return user;
@@ -36,6 +35,6 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder();
     }
 }

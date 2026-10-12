@@ -22,8 +22,11 @@ import java.util.List;
 @RequestMapping("/invoice")
 public class InvoiceController {
 
-    @Autowired
-    private InvoiceService invoiceService;
+    private final InvoiceService invoiceService;
+
+    public InvoiceController(InvoiceService invoiceService) {
+        this.invoiceService = invoiceService;
+    }
 
     @GetMapping
     public List<Invoice> getAllInvoices() {
@@ -36,8 +39,8 @@ public class InvoiceController {
     }
 
     @PostMapping
-    public Invoice saveInvoice(@RequestBody Invoice invoice) {
-        return invoiceService.saveInvoice(invoice);
+    public Invoice saveInvoice(@RequestBody InvoiceDTO invoiceDTO) {
+        return invoiceService.saveInvoice(invoiceDTO.toEntity());
     }
 
     @DeleteMapping("/{id}")

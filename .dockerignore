@@ -1,0 +1,11 @@
+.git
+.idea
+.mvn
+src
+target/*.original
+target/*-sources.jar
+target/*-javadoc.jar
+backend.log
+zap-reports
+zap-reports-fixed
+*.log
