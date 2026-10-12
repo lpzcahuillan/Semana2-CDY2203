@@ -4,11 +4,11 @@ import com.duoc.backend.care.Care;
 import com.duoc.backend.care.CareRepository;
 import com.duoc.backend.medication.Medication;
 import com.duoc.backend.medication.MedicationRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -32,39 +32,74 @@ public class InvoiceService {
     }
 
     public Invoice getInvoiceById(Long id) {
+        if (id == null) {
+            return null;
+        }
         return invoiceRepository.findById(id).orElse(null);
     }
 
     public Invoice saveInvoice(Invoice invoice) {
+        if (invoice == null) {
+            throw new IllegalArgumentException("La factura no puede ser nula.");
+        }
+
+        List<Medication> medications = invoice.getMedications() != null
+                ? invoice.getMedications()
+                : Collections.emptyList();
+
+        List<Care> cares = invoice.getCares() != null
+                ? invoice.getCares()
+                : Collections.emptyList();
+
         // Validar que los medicamentos existen
-        List<Medication> validMedications = StreamSupport.stream(
-                medicationRepository.findAllById(
-                        invoice.getMedications().stream().map(Medication::getId).collect(Collectors.toList())
-                ).spliterator(), false
-        ).collect(Collectors.toList());
-        if (validMedications.size() != invoice.getMedications().size()) {
-            throw new IllegalArgumentException("Algunos medicamentos no existen en la base de datos.");
+        List<Medication> validMedications = Collections.emptyList();
+        if (!medications.isEmpty()) {
+            List<Long> medicationIds = medications.stream()
+                    .filter(Objects::nonNull)
+                    .map(Medication::getId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            validMedications = StreamSupport.stream(
+                    medicationRepository.findAllById(medicationIds).spliterator(), false
+            ).collect(Collectors.toList());
+
+            if (validMedications.size() != medications.size()) {
+                throw new IllegalArgumentException("Algunos medicamentos no existen en la base de datos.");
+            }
         }
 
         // Validar que los servicios existen
-        List<Care> validCares = StreamSupport.stream(
-                careRepository.findAllById(
-                        invoice.getCares().stream().map(Care::getId).collect(Collectors.toList())
-                ).spliterator(), false
-        ).collect(Collectors.toList());
-        if (validCares.size() != invoice.getCares().size()) {
-            throw new IllegalArgumentException("Algunos servicios no existen en la base de datos.");
+        List<Care> validCares = Collections.emptyList();
+        if (!cares.isEmpty()) {
+            List<Long> careIds = cares.stream()
+                    .filter(Objects::nonNull)
+                    .map(Care::getId)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+
+            validCares = StreamSupport.stream(
+                    careRepository.findAllById(careIds).spliterator(), false
+            ).collect(Collectors.toList());
+
+            if (validCares.size() != cares.size()) {
+                throw new IllegalArgumentException("Algunos servicios no existen en la base de datos.");
+            }
         }
 
         // Calcular el costo total basado en los servicios y medicamentos asociados
         double totalCareCost = validCares.stream()
-                .mapToDouble(Care::getCost)
+                .filter(Objects::nonNull)
+                .mapToDouble(c -> c.getCost() != null ? c.getCost() : 0.0)
                 .sum();
 
         double totalMedicationCost = validMedications.stream()
-                .mapToDouble(Medication::getCost)
+                .filter(Objects::nonNull)
+                .mapToDouble(m -> m.getCost() != null ? m.getCost() : 0.0)
                 .sum();
 
+        invoice.setCares(validCares);
+        invoice.setMedications(validMedications);
         invoice.setTotalCost(totalCareCost + totalMedicationCost);
 
         // Guardar la factura en el repositorio
@@ -72,6 +107,8 @@ public class InvoiceService {
     }
 
     public void deleteInvoice(Long id) {
-        invoiceRepository.deleteById(id);
+        if (id != null) {
+            invoiceRepository.deleteById(id);
+        }
     }
 }

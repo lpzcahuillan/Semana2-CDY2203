@@ -83,15 +83,23 @@ public class InvoiceController {
             table.addCell("Costo");
 
             // Agregar servicios a la tabla
-            for (Care care : invoice.getCares()) {
-                table.addCell(care.getName());
-                table.addCell("$" + care.getCost());
+            if (invoice.getCares() != null) {
+                for (Care care : invoice.getCares()) {
+                    if (care != null) {
+                        table.addCell(care.getName() != null ? care.getName() : "");
+                        table.addCell("$" + (care.getCost() != null ? care.getCost() : 0.0));
+                    }
+                }
             }
 
             // Agregar medicamentos a la tabla
-            for (Medication medication : invoice.getMedications()) {
-                table.addCell(medication.getName());
-                table.addCell("$" + medication.getCost());
+            if (invoice.getMedications() != null) {
+                for (Medication medication : invoice.getMedications()) {
+                    if (medication != null) {
+                        table.addCell(medication.getName() != null ? medication.getName() : "");
+                        table.addCell("$" + (medication.getCost() != null ? medication.getCost() : 0.0));
+                    }
+                }
             }
 
             document.add(table);

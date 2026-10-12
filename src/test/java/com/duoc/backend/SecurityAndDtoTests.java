@@ -143,4 +143,69 @@ class SecurityAndDtoTests {
         assertEquals("user2", dto.getUsername());
         assertEquals("pass2", dto.getPassword());
     }
+
+    @Test
+    void testInvoiceServiceNullSafety() {
+        com.duoc.backend.Invoice.InvoiceRepository invoiceRepo = new com.duoc.backend.Invoice.InvoiceRepository() {
+            @Override public <S extends Invoice> S save(S entity) { return entity; }
+            @Override public <S extends Invoice> Iterable<S> saveAll(Iterable<S> entities) { return null; }
+            @Override public java.util.Optional<Invoice> findById(Long id) { return java.util.Optional.empty(); }
+            @Override public boolean existsById(Long id) { return false; }
+            @Override public Iterable<Invoice> findAll() { return Collections.emptyList(); }
+            @Override public Iterable<Invoice> findAllById(Iterable<Long> ids) { return Collections.emptyList(); }
+            @Override public long count() { return 0; }
+            @Override public void deleteById(Long id) {}
+            @Override public void delete(Invoice entity) {}
+            @Override public void deleteAllById(Iterable<? extends Long> ids) {}
+            @Override public void deleteAll(Iterable<? extends Invoice> entities) {}
+            @Override public void deleteAll() {}
+        };
+
+        com.duoc.backend.medication.MedicationRepository medRepo = new com.duoc.backend.medication.MedicationRepository() {
+            @Override public <S extends Medication> S save(S entity) { return null; }
+            @Override public <S extends Medication> Iterable<S> saveAll(Iterable<S> entities) { return null; }
+            @Override public java.util.Optional<Medication> findById(Long id) { return java.util.Optional.empty(); }
+            @Override public boolean existsById(Long id) { return false; }
+            @Override public Iterable<Medication> findAll() { return Collections.emptyList(); }
+            @Override public Iterable<Medication> findAllById(Iterable<Long> ids) { return Collections.emptyList(); }
+            @Override public long count() { return 0; }
+            @Override public void deleteById(Long id) {}
+            @Override public void delete(Medication entity) {}
+            @Override public void deleteAllById(Iterable<? extends Long> ids) {}
+            @Override public void deleteAll(Iterable<? extends Medication> entities) {}
+            @Override public void deleteAll() {}
+        };
+
+        com.duoc.backend.care.CareRepository careRepo = new com.duoc.backend.care.CareRepository() {
+            @Override public <S extends Care> S save(S entity) { return null; }
+            @Override public <S extends Care> Iterable<S> saveAll(Iterable<S> entities) { return null; }
+            @Override public java.util.Optional<Care> findById(Long id) { return java.util.Optional.empty(); }
+            @Override public boolean existsById(Long id) { return false; }
+            @Override public Iterable<Care> findAll() { return Collections.emptyList(); }
+            @Override public Iterable<Care> findAllById(Iterable<Long> ids) { return Collections.emptyList(); }
+            @Override public long count() { return 0; }
+            @Override public void deleteById(Long id) {}
+            @Override public void delete(Care entity) {}
+            @Override public void deleteAllById(Iterable<? extends Long> ids) {}
+            @Override public void deleteAll(Iterable<? extends Care> entities) {}
+            @Override public void deleteAll() {}
+        };
+
+        com.duoc.backend.Invoice.InvoiceService service = new com.duoc.backend.Invoice.InvoiceService(invoiceRepo, medRepo, careRepo);
+
+        Invoice invoiceWithNullLists = new Invoice();
+        invoiceWithNullLists.setPatientName("Firulais");
+        invoiceWithNullLists.setCares(null);
+        invoiceWithNullLists.setMedications(null);
+
+        // Before the fix, this threw NullPointerException at line 42 / 52
+        assertDoesNotThrow(() -> {
+            Invoice saved = service.saveInvoice(invoiceWithNullLists);
+            assertNotNull(saved);
+            assertEquals(0.0, saved.getTotalCost());
+        });
+
+        assertNull(service.getInvoiceById(null));
+        assertDoesNotThrow(() -> service.deleteInvoice(null));
+    }
 }
